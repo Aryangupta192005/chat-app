@@ -4,7 +4,7 @@ import os
 
 clients = set()
 
-async def handler(websocket, path):  # 🔥 added path
+async def handler(websocket, path):  # 🔥 MUST include path
     clients.add(websocket)
     print("Client connected")
 
@@ -13,8 +13,8 @@ async def handler(websocket, path):  # 🔥 added path
             for client in clients:
                 if client != websocket:
                     await client.send(message)
-    except:
-        pass
+    except Exception as e:
+        print("Error:", e)
     finally:
         clients.remove(websocket)
         print("Client disconnected")
@@ -22,7 +22,12 @@ async def handler(websocket, path):  # 🔥 added path
 async def main():
     port = int(os.environ.get("PORT", 8080))
 
-    async with websockets.serve(handler, "0.0.0.0", port):
+    async with websockets.serve(
+        handler,
+        "0.0.0.0",
+        port,
+        ping_interval=None  # 🔥 prevents timeout issues
+    ):
         print(f"Server running on port {port}")
         await asyncio.Future()
 
