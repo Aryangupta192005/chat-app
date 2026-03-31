@@ -1,41 +1,24 @@
-import socket
-import threading
+import asyncio
+import websockets
+import os
 
-HOST = "0.0.0.0"
-PORT = 5555
+clients = set()
 
-clients = []
+async def handler(websocket):
+    clients.add(websocket)
+    try:
+        async for message in websocket:
+            for client in clients:
+                if client != websocket:
+                    await client.send(message)
+    finally:
+        clients.remove(websocket)
 
-def broadcast(message, sender):
-    for client in clients:
-        if client != sender:
-            try:
-                client.send(message)
-            except:
-                clients.remove(client)
+async def main():
+    port = int(os.environ.get("PORT", 5555))
 
-def handle_client(client):
-    while True:
-        try:
-            message = client.recv(1024)
-            broadcast(message, client)
-        except:
-            clients.remove(client)
-            client.close()
-            break
+    async with websockets.serve(handler, "0.0.0.0", port):
+        print(f"Server running on port {port}")
+        await asyncio.Future()
 
-def start():
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((HOST, PORT))
-    server.listen()
-
-    print("Server running...")
-
-    while True:
-        client, addr = server.accept()
-        print("Connected:", addr)
-        clients.append(client)
-
-        threading.Thread(target=handle_client, args=(client,)).start()
-
-start()
+asyncio.run(main())
