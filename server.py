@@ -4,9 +4,9 @@ import os
 
 clients = set()
 
-async def handler(websocket):
+async def handler(websocket, path):  # 🔥 added path
     clients.add(websocket)
-    print("New client connected")
+    print("Client connected")
 
     try:
         async for message in websocket:
@@ -20,7 +20,6 @@ async def handler(websocket):
         print("Client disconnected")
 
 async def main():
-    # 🔥 IMPORTANT for Railway
     port = int(os.environ.get("PORT", 8080))
 
     async with websockets.serve(handler, "0.0.0.0", port):
