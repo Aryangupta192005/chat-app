@@ -1,5 +1,4 @@
-from fastapi import FastAPI, WebSocket
-import uvicorn
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import os
 
 app = FastAPI()
@@ -17,10 +16,6 @@ async def websocket_endpoint(websocket: WebSocket):
             for client in clients:
                 if client != websocket:
                     await client.send_text(data)
-    except:
+    except WebSocketDisconnect:
         clients.remove(websocket)
         print("Client disconnected")
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run(app, host="0.0.0.0", port=port)
