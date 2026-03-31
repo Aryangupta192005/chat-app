@@ -4,7 +4,7 @@ import os
 
 clients = set()
 
-async def handler(websocket, path):  # 🔥 MUST include path
+async def handler(websocket):
     clients.add(websocket)
     print("Client connected")
 
@@ -22,13 +22,13 @@ async def handler(websocket, path):  # 🔥 MUST include path
 async def main():
     port = int(os.environ.get("PORT", 8080))
 
-    async with websockets.serve(
+    server = await websockets.serve(
         handler,
         "0.0.0.0",
-        port,
-        ping_interval=None  # 🔥 prevents timeout issues
-    ):
-        print(f"Server running on port {port}")
-        await asyncio.Future()
+        port
+    )
+
+    print(f"Server running on port {port}")
+    await server.wait_closed()
 
 asyncio.run(main())
